@@ -1,27 +1,28 @@
-# Gain-Shape K-Means (GSKM) Analysis & Visualization
+# Gain-Shape K-Means (GSKM)
 
-[cite_start]This repository contains the analysis scripts and experimental logs required to reproduce the key figures from the ICML 2026 paper: **"Gain-Shape Reparameterized K-Means: Toward Sub-1-bit KV-Cache"**
+This repository contains the analysis scripts and experimental logs required to reproduce the key figures from the ICML 2026 paper: **"Gain-Shape Reparameterized K-Means: Toward Sub-1-bit KV-Cache"**
 
-[cite_start]By running the provided scripts, you can visualize the centroid shrinkage phenomenon and the effectiveness of GSKM compared to standard K-Means.
+By running the provided scripts, you can visualize the centroid shrinkage phenomenon and the effectiveness of GSKM compared to standard K-Means.
+
+<br>
 
 ## 📂 Repository Structure
 
 The repository is organized as follows:
 
 ```
-text
-.
-├── clustering_results/           # Directory containing pre-computed JSON logs
+├── clustering_results/ 
 │   ├── clustering_comparison_report_value_dim_8_K1024.json
 │   ├── clustering_comparison_report_value_dim_8_K1024_residual.json
 │   ├── clustering_comparison_report_value_dim_8_K256.json
 │   ├── clustering_comparison_report_value_dim_8_K256_residual.json
 │   └── ...
-├── plot_clustering.py            # Script to reproduce Figure 4 (KV-Cache Reconstruction)
-├── plot_clustering_random.py     # Script to reproduce Figure 3 (Random Gaussian Sweeps)
+├── plot_clustering.py 
+├── plot_clustering_random.py
 └── README.md
 ```
 
+<br>
 
 ## 🛠️ Prerequisites
 
@@ -35,6 +36,8 @@ You can install the necessary packages using pip:
 pip install matplotlib numpy
 ```
 
+<br>
+
 ## 📊 Reproducing Figures
 
 ### 1. Figure 3: Random Gaussian Sweeps
@@ -46,6 +49,7 @@ To generate the plots for MSE, Gain Error, and Cosine Similarity (Figure 3a-f):
 ```Bash
 python plot_clustering_random.py
 ```
+
 
 ### 2. Figure 4: Llama-3-8B KV-Cache Reconstruction
 
@@ -61,6 +65,8 @@ This script reads the JSON logs from the ```clustering_results/``` directory and
 
 * Output: This script processes the JSON files in clustering_results/ and generates the plots for Key/Value Original and Key/Value 1st Residual (Figure 4a-l).
 
+<br>
+
 ## 📄 Data Format
 
 The ```clustering_results/``` directory contains JSON files following this naming convention: ```clustering_comparison_report_{type}_dim_{D}_K{K}_```{residual}.json
@@ -70,6 +76,8 @@ Each file records the following metrics used in the paper:
 * MSE: Mean Squared Error ($\frac{1}{N}\sum \|x - \hat{x}\|_2^2$).
 * Gain Error: Magnitude difference ($\mathbb{E}[|\|x\|_2 - \|\hat{x}\|_2 |]$).
 * Cosine Similarity: Directional alignment ($\mathbb{E}[\cos(x, \hat{x})]$).
+
+<br>
 
 ## 📝 Citation
 
