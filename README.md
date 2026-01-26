@@ -1,4 +1,4 @@
-# Gain-Shape K-Means (GSKM)
+# Gain-Shape Reparameterized K-Means: Toward Sub 1-bit KV-Cache
 
 This repository contains the analysis scripts and experimental logs required to reproduce the key figures from the ICML 2026 paper: **"Gain-Shape Reparameterized K-Means: Toward Sub-1-bit KV-Cache"**
 
@@ -26,11 +26,7 @@ The repository is organized as follows:
 
 ## 🛠️ Prerequisites
 
-The scripts are written in Python. To run the visualization code, you will need the following dependencies:
-Python 3.x
-Matplotlib
-NumPy
-You can install the necessary packages using pip:
+The code is implemented in Python. To run the visualization scripts, install the required dependences:
 
 ```Bash
 pip install matplotlib numpy
@@ -42,7 +38,7 @@ pip install matplotlib numpy
 
 ### 1. Figure 3: Random Gaussian Sweeps
 
-Goal: Visualize the impact of high-dimensional averaging cancellation on standard K-Means vs. GSKM using synthetic data. This corresponds to the dimension ($D$) and capacity ($K$) sweeps discussed in the paper.
+Visualize the impact of high-dimensional averaging cancellation on standard K-Means vs. GSKM using synthetic data. This corresponds to the dimension ($D$) and capacity ($K$) sweeps discussed in the paper.
 
 To generate the plots for MSE, Gain Error, and Cosine Similarity (Figure 3a-f):
 
@@ -53,17 +49,23 @@ python plot_clustering_random.py
 
 ### 2. Figure 4: Llama-3-8B KV-Cache Reconstruction
 
-Goal: Evaluate reconstruction performance on real KV-cache activations (Wikitext-2) for both the original signal and the first residual stage.
+Evaluate reconstruction performance on real KV-cache activations (Wikitext-2) for both the original signal and the first residual stage.
 
 To generate the plots for Key/Value Original and Key/Value 1st Residual (Figure 4a-l), run the script specifying the input data directory and the output directory for figures:
 
 ```Bash
-python plot_clustering.py --input_dir clustering_results --output_dir output_figures
+python plot_clustering.py --input_dir clustering_results --output_dir output_figures --include_residual 1
 ```
 
-This script reads the JSON logs from the ```clustering_results/``` directory and saves the generated plots to ```output_figures/```.
+* ```--input_dir```: Directory containing the JSON logs.
 
-* Output: This script processes the JSON files in clustering_results/ and generates the plots for Key/Value Original and Key/Value 1st Residual (Figure 4a-l).
+* ```--output_dir```: Directory to save the resulting PDF/PNG figures.
+
+* ```--include_residual```: Set to 1 to plot original and residual curves separately.
+
+* ```--Ks```: Codebook sizes to plot (default: 256 1024).
+
+* Output: This will generate the plots for Key/Value Original and Key/Value 1st Residual (Figure 4 a-l).
 
 <br>
 
