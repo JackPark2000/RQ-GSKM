@@ -11,14 +11,11 @@ By running the provided scripts, you can visualize the centroid shrinkage phenom
 The repository is organized as follows:
 
 ```
-├── clustering_results/ 
-│   ├── clustering_comparison_report_value_dim_8_K1024.json
-│   ├── clustering_comparison_report_value_dim_8_K1024_residual.json
-│   ├── clustering_comparison_report_value_dim_8_K256.json
-│   ├── clustering_comparison_report_value_dim_8_K256_residual.json
-│   └── ...
-├── plot_clustering.py 
-├── plot_clustering_random.py
+├── clustering.py                 # Core logic for K-Means/GSKM algorithms on real data
+├── plot_clustering.py            # Visualization script for Figure 4 (Real KV Cache)
+├── plot_clustering_random.py     # Simulation & Visualization for Figure 3 (Synthetic Data)
+├── run_clustering.sh             # Shell script to run clustering experiments
+├── run_duming.sh                 # Shell script to dump calibration set of Llama3-8b with Wikitext-2s
 └── README.md
 ```
 
@@ -26,11 +23,14 @@ The repository is organized as follows:
 
 ## 🛠️ Prerequisites
 
-The code is implemented in Python. To run the visualization scripts, install the required dependences:
+The code relies on PyTorch, CuPy, and RAPIDS cuML for GPU-accelerated clustering. To run the scripts, ensure you have a CUDA-enabled environment.
 
-```Bash
-pip install matplotlib numpy
-```
+Core Dependencies:
+* Python 3.8+
+* PyTorch (GPU support)
+* CuPy
+* RAPIDS cuML (for cuml.cluster.KMeans)
+* Matplotlib, NumPy, Pandas
 
 <br>
 
@@ -40,18 +40,32 @@ pip install matplotlib numpy
 
 Visualize the impact of high-dimensional averaging cancellation on standard K-Means vs. GSKM using synthetic data. This corresponds to the dimension ($D$) and capacity ($K$) sweeps discussed in the paper.
 
-To generate the plots for MSE, Gain Error, and Cosine Similarity (Figure 3a-f):
+The script plot_clustering_random.py generates the synthetic data internally, runs the algorithms, and produces the plots in one go.
 
 ```Bash
-python plot_clustering_random.py
+python plot_clustering_random.py --out_dir output_figures_random --dims 4 8 16 32 64 128 256 512 1024 --Ks 64 128 256 512 1024 2048 4096 8192 16384
 ```
+* Output: Creates PDF files in output_figures_random/ (e.g., dsweep_CosineSimilarity_K2048.pdf).
 
 
 ### 2. Figure 4: Llama-3-8B KV-Cache Reconstruction
 
 Evaluate reconstruction performance on real KV-cache activations (Wikitext-2) for both the original signal and the first residual stage.
 
-To generate the plots for Key/Value Original and Key/Value 1st Residual (Figure 4a-l), run the script specifying the input data directory and the output directory for figures:
+**Step 1: Generate Experimental Data**
+First, you need to extract clustering metrics from the Llama-3-8B model. We provide a shell script that automatically runs `llama_wiki_dump.py` across all required dimensions ($D \in \{8, 32, 128, 512\}$).
+
+```bash
+bash run_dumping.sh
+```
+
+**Step 2: Run Clustering Analysis Next, run the clustering algorithms (Standard K-Means vs. GSKM) on the extracted data. This script executes clustering.py for various configurations and generates the JSON metric logs in the clustering_results/ directory.**
+
+```Bash
+bash run_clustering.sh
+```
+
+**Step 3: Visualize Results Finally, generate the figure using the computed logs:**
 
 ```Bash
 python plot_clustering.py --input_dir clustering_results --output_dir output_figures --include_residual 1
@@ -79,8 +93,3 @@ Each file records the following metrics used in the paper:
 * Gain Error: Magnitude difference ($\mathbb{E}[|\|x\|_2 - \|\hat{x}\|_2 |]$).
 * Cosine Similarity: Directional alignment ($\mathbb{E}[\cos(x, \hat{x})]$).
 
-<br>
-
-## 📝 Citation
-
-If you find this code or our paper useful for your research, please cite.
