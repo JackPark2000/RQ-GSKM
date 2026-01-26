@@ -2,9 +2,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Plot ICML-style comparisons (KM vs GSKM) by sweeping dim, for key/value separately.
-- KM  := "K-Means"
-- GSKM := "ABC"   (user requested labeling)
+Plot Clustering Comparison
+
+This script generates plots comparing Standard K-Means (KM) against Gain-Shape K-Means (GSKM) by sweeping across dimensions (D).
 
 Each plot overlays K=256 and K=1024 in the same axis.
 Metrics: MSE, gain error, cosine error
@@ -19,14 +19,16 @@ Input: multiple JSON files like:
 etc.
 
 Usage:
-  python plot_clustering_icml.py \
-    --input_dir ./reports \
-    --output_dir ./figs \
+  python plot_clustering.py \
+    --input_dir clustering_results \
+    --output_dir output_figures \
     --Ks 256 1024 \
-    --include_residual 0
+    --include_residual 1
 
 If you want to also plot residual variants separately:
   python plot_clustering_icml.py --include_residual 1
+
+Author: Minjae Park, Soosung Kim
 """
 
 import argparse
@@ -42,11 +44,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# -----------------------------
-# Helpers
-# -----------------------------
+# ----------------------------------
+# Helper Function for Data Parsing
+# ----------------------------------
 def _as_list(obj: Any) -> List[Dict[str, Any]]:
-    """Some files may contain a single dict or a list of dicts."""
+    """
+    Standardized input to a list of dictionaries.
+    Handles cases where JSON contains a single dict or a list.
+    """
     if obj is None:
         return []
     if isinstance(obj, list):
@@ -57,6 +62,7 @@ def _as_list(obj: Any) -> List[Dict[str, Any]]:
 
 
 def _try_float(x: Any) -> Optional[float]:
+    """Attempts to convert a value to a float"""
     try:
         if x is None:
             return None
@@ -66,13 +72,14 @@ def _try_float(x: Any) -> Optional[float]:
 
 
 def _bool_from_filename(path: str) -> bool:
+    """Detects if the file represents a residual quantization experiment."""
     base = os.path.basename(path).lower()
     return ("residual" in base) or ("_res" in base)
 
 
 def _extract_from_filename(path: str) -> Dict[str, Any]:
     """
-    Best-effort parse: key/value, dim, K from filename.
+    Parses metadata (Key/Value, Dimension, K) directly from the filename.
     Example:
       clustering_comparison_report_value_dim_128_K1024.json
       clustering_comparison_report_key_dim_8_K256_residual.json
@@ -80,14 +87,17 @@ def _extract_from_filename(path: str) -> Dict[str, Any]:
     base = os.path.basename(path)
     out: Dict[str, Any] = {}
 
+    # Extract key vs value
     m_kv = re.search(r"report_(key|value)_", base, flags=re.IGNORECASE)
     if m_kv:
         out["key_or_value_fn"] = m_kv.group(1).lower()
 
+    # Extract Dimension (D)
     m_dim = re.search(r"_dim_(\d+)", base, flags=re.IGNORECASE)
     if m_dim:
         out["dim_fn"] = int(m_dim.group(1))
 
+    # Extract Number of Clusters (K)
     m_k = re.search(r"_K(\d+)", base, flags=re.IGNORECASE)
     if m_k:
         out["K_fn"] = int(m_k.group(1))
@@ -96,18 +106,23 @@ def _extract_from_filename(path: str) -> Dict[str, Any]:
     return out
 
 
+# --------------------------------------------
+# Configuration & Constants
+# --------------------------------------------
+
 @dataclass
 class AlgoSpec:
     json_name: str   # key in averages dict
     label: str       # label in plots
 
 
-# User-requested labeling
+# Algorithm definitions
 ALGORITHMS = [
     AlgoSpec(json_name="K-Means", label="KM"),
     AlgoSpec(json_name="ABC",     label="GSKM"),
 ]
 
+# Metrics to plot
 METRICS = {
     "avg_mse": "MSE",
     "avg_gain_err": "Gain error",
@@ -115,8 +130,13 @@ METRICS = {
 }
 
 
-
+# --------------------------------------------
+# Data Loading Logic
+# --------------------------------------------
 def load_reports(paths: Iterable[str]) -> pd.DataFrame:
+    """
+    Reads all JSON reports and consolidates them into Pandas DataFrame.
+    """
     rows: List[Dict[str, Any]] = []
 
     for path in paths:
@@ -170,11 +190,10 @@ def load_reports(paths: Iterable[str]) -> pd.DataFrame:
     return df
 
 
-# -----------------------------
-# Plotting (ICML-ish style)
-# -----------------------------
+# -------------------------------------------
+# Plotting Functions
+# -------------------------------------------
 def set_icml_style():
-    # A lightweight "ICML-like" matplotlib setup
     plt.rcParams.update({
         "figure.dpi": 150,
         "savefig.dpi": 300,
@@ -203,6 +222,9 @@ def plot_metric_sweep(
     residual_mode: Optional[bool] = None,
     title_suffix: str = "",
 ):
+    """
+    Generates and saves a single plot sweeping across dimensions.
+    """
     d = df[df["key_or_value"] == key_or_value].copy()
     d = d[d["K"].isin(Ks)].copy()
     if residual_mode is not None:
@@ -215,16 +237,12 @@ def plot_metric_sweep(
 
     dims_sorted = sorted(d["dim"].unique().tolist())
 
-    # --- styles: color by algo, linestyle by K ---
-    # KM은 중립(짙은 회색), GSKM은 눈에 띄는 색(빨강 계열)
     algo_to_color = {
         "KM":   "#4d4d4d",
         "GSKM": "#d62728",
     }
     algo_to_marker = {"KM": "o", "GSKM": "s"}
 
-    # K는 linestyle로만 구분 (같은 algo면 같은 색 유지)
-    # (원하면 256/1024를 바꿔도 됨)
     K_to_style = {}
     styles = {min(Ks): "--", max(Ks): "-"} if len(Ks) >= 2 else {Ks[0]: "-"}
     for K in Ks:
@@ -256,7 +274,6 @@ def plot_metric_sweep(
                 label=f"{algo} (K={K})",
             )
 
-    # ----- X axis: log2 so 8,32,128,512 are equally spaced -----
     try:
         ax.set_xscale("log", base=2)
     except TypeError:
@@ -293,6 +310,9 @@ def plot_metric_sweep(
     plt.close(fig)
     print(f"[OK] Saved: {out_path}")
 
+# ---------------------------------------------
+# Main Execution
+# ---------------------------------------------
 
 def main():
     ap = argparse.ArgumentParser()
