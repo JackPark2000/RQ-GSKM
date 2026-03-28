@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.eggs/
+
+# Output directories
+clustering_results/
+dumped_data_dim_*/
+figures/
+output_figures*/
+*.pdf
+*.png

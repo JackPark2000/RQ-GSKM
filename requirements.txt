@@ -1,0 +1,9 @@
+torch>=2.0
+cupy-cuda12x
+cuml-cu12
+matplotlib
+numpy
+pandas
+transformers
+datasets
+accelerate
