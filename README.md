@@ -26,29 +26,11 @@ Both figures compare **Standard K-Means (KM)** against **Gain-Shape K-Means (GSK
 
 <br>
 
-## Prerequisites
-
-```bash
-conda create -n gsrq python=3.11 -y
-conda activate gsrq
-```
-
-This is sufficient to generate **Figure 5** (KV-cache) from the pre-computed results included in this repository. For **Figure 4** (synthetic) and re-running clustering from scratch, see the additional setup in the sections below.
-
-<br>
-
 ## Reproducing Figures
 
 ### Figure 4: Synthetic Gaussian Sweeps
 
-Visualize the centroid shrinkage phenomenon on synthetic data. Requires a **CUDA GPU** and additional dependencies:
-
-```bash
-# Additional setup (CUDA GPU required)
-conda install -y -c pytorch -c nvidia -c rapidsai -c conda-forge pytorch torchvision torchaudio pytorch-cuda=12.1 cuml=24.04 cupy pandas numpy matplotlib cuda-version=12.1
-```
-
-Then run:
+Visualize the centroid shrinkage phenomenon on synthetic data.
 
 ```bash
 python plot_synthetic.py \
@@ -57,7 +39,7 @@ python plot_synthetic.py \
     --Ks 64 128 256 512 1024 2048 4096 8192 16384
 ```
 
-**Output:** `figures/synthetic/dsweep_*.pdf` and `figures/synthetic/ksweep_*.pdf` (Figure 4a-f)
+**Output:** `figures/synthetic/dsweep_*.pdf` and `figures/synthetic/ksweep_*.pdf` (Figure 4)
 
 
 ### Figure 5: Llama-3-8B KV-Cache Reconstruction
@@ -79,18 +61,13 @@ python plot_kvcache.py \
 | `--Ks` | Codebook sizes to overlay (default: 256, 1024) |
 | `--include_residual` | Set to `1` to plot original and 1st residual separately |
 
-**Output:** Plots for Key/Value Original and Key/Value 1st Residual (Figure 5a-l).
+**Output:** Plots for Key/Value Original and Key/Value 1st Residual (Figure 5).
 
 <details>
 <summary><b>Re-running from scratch (optional)</b></summary>
 
-If you want to reproduce the clustering results yourself, install the additional dependencies first (if not already done for Figure 4):
+If you want to reproduce the clustering results yourself:
 
-```bash
-conda install -c rapidsai -c conda-forge -c nvidia cuml cupy rapids-dask-dependency -y
-conda install pytorch pytorch-cuda=12.4 -c pytorch -c nvidia -y
-pip install transformers datasets accelerate
-```
 
 > **Note:** Llama-3-8B requires access approval on [HuggingFace](https://huggingface.co/meta-llama/Meta-Llama-3-8B). Run `huggingface-cli login` before dumping KV-cache data.
 
@@ -100,12 +77,7 @@ pip install transformers datasets accelerate
 bash dump_kvcache.sh
 ```
 
-This runs `dump_kvcache.py` for $D \in \{8, 32, 128, 512\}$ and both key/value caches. Each run loads the model, performs a forward pass on Wikitext-2, and saves the D-dimensional sub-vectors to `dumped_data_dim_{D}/`. You can also run individual configurations:
-
-```bash
-python dump_kvcache.py --dim 128 --kv key
-python dump_kvcache.py --dim 128 --kv value --max_length 4096
-```
+This runs `dump_kvcache.py` for $D \in \{8, 32, 128, 512\}$ and both key/value caches. Each run loads the model, performs a forward pass on Wikitext-2, and saves the D-dimensional sub-vectors to `dumped_data_dim_{D}/`.
 
 **Step 2.** Run clustering experiments across all configurations:
 
