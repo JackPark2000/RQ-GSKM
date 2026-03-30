@@ -28,25 +28,13 @@ Both figures compare **Standard K-Means (KM)** against **Gain-Shape K-Means (GSK
 
 ## Prerequisites
 
-Create a conda environment with RAPIDS cuML and PyTorch:
-
 ```bash
 conda create -n gsrq python=3.11 -y
 conda activate gsrq
-
-# RAPIDS cuML (from rapidsai channel)
-conda install -c rapidsai -c conda-forge -c nvidia cuml cupy rapids-dask-dependency -y
-
-# PyTorch with CUDA
-pip install torch --index-url https://download.pytorch.org/whl/cu121
-
-# Remaining dependencies
-pip install matplotlib numpy pandas transformers datasets accelerate
+pip install matplotlib numpy pandas
 ```
 
-**Plotting only** (Figure 5 from pre-computed results): `matplotlib`, `numpy`, `pandas` are sufficient.
-
-**Full reproduction** (Figure 4 synthetic + re-running clustering): the full environment above is required.
+This is sufficient to generate **Figure 5** (KV-cache) from the pre-computed results included in this repository. For **Figure 4** (synthetic) and re-running clustering from scratch, see the additional setup in the sections below.
 
 <br>
 
@@ -54,7 +42,15 @@ pip install matplotlib numpy pandas transformers datasets accelerate
 
 ### Figure 4: Synthetic Gaussian Sweeps
 
-Visualize the centroid shrinkage phenomenon on synthetic data. The script generates random Gaussian vectors internally, runs KM and GSKM, and produces 6 PDF figures (D-sweep and K-sweep for MSE, Gain Error, and Cosine Similarity). Requires a CUDA GPU.
+Visualize the centroid shrinkage phenomenon on synthetic data. Requires a **CUDA GPU** and additional dependencies:
+
+```bash
+# Additional setup (CUDA GPU required)
+conda install -c rapidsai -c conda-forge -c nvidia cuml cupy rapids-dask-dependency -y
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+```
+
+Then run:
 
 ```bash
 python plot_synthetic.py \
@@ -90,7 +86,15 @@ python plot_kvcache.py \
 <details>
 <summary><b>Re-running from scratch (optional)</b></summary>
 
-If you want to reproduce the clustering results yourself, follow these steps:
+If you want to reproduce the clustering results yourself, install the additional dependencies first (if not already done for Figure 4):
+
+```bash
+conda install -c rapidsai -c conda-forge -c nvidia cuml cupy rapids-dask-dependency -y
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+pip install transformers datasets accelerate
+```
+
+> **Note:** Llama-3-8B requires access approval on [HuggingFace](https://huggingface.co/meta-llama/Meta-Llama-3-8B). Run `huggingface-cli login` before dumping KV-cache data.
 
 **Step 1.** Dump KV-cache activations for all required dimensions:
 
@@ -114,8 +118,6 @@ bash run_clustering.sh
 This executes `run_clustering.py` for all $D \in \{8, 32, 128, 512\}$, $K \in \{256, 1024\}$, and both key/value caches. Results (including the 1st residual stage) are saved as JSON files in `clustering_results/`.
 
 **Step 3.** Generate the plots using the command above.
-
-> **Note:** Llama-3-8B requires access approval on [HuggingFace](https://huggingface.co/meta-llama/Meta-Llama-3-8B). Run `huggingface-cli login` before dumping KV-cache data.
 
 </details>
 
