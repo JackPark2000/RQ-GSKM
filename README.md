@@ -31,7 +31,6 @@ Both figures compare **Standard K-Means (KM)** against **Gain-Shape K-Means (GSK
 ```bash
 conda create -n gsrq python=3.11 -y
 conda activate gsrq
-pip install matplotlib numpy pandas
 ```
 
 This is sufficient to generate **Figure 5** (KV-cache) from the pre-computed results included in this repository. For **Figure 4** (synthetic) and re-running clustering from scratch, see the additional setup in the sections below.
@@ -46,8 +45,7 @@ Visualize the centroid shrinkage phenomenon on synthetic data. Requires a **CUDA
 
 ```bash
 # Additional setup (CUDA GPU required)
-conda install -c rapidsai -c conda-forge -c nvidia cuml cupy rapids-dask-dependency -y
-pip install torch --index-url https://download.pytorch.org/whl/cu121
+conda install -y -c pytorch -c nvidia -c rapidsai -c conda-forge pytorch torchvision torchaudio pytorch-cuda=12.1 cuml=24.04 cupy pandas numpy matplotlib cuda-version=12.1
 ```
 
 Then run:
@@ -90,7 +88,7 @@ If you want to reproduce the clustering results yourself, install the additional
 
 ```bash
 conda install -c rapidsai -c conda-forge -c nvidia cuml cupy rapids-dask-dependency -y
-pip install torch --index-url https://download.pytorch.org/whl/cu121
+conda install pytorch pytorch-cuda=12.4 -c pytorch -c nvidia -y
 pip install transformers datasets accelerate
 ```
 
