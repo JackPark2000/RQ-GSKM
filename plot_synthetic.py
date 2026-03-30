@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Figure 3: Synthetic Gaussian Experiments (KM vs GSKM).
+Figure 4: Synthetic Gaussian Experiments (KM vs GSKM).
 
 Generates D-sweep and K-sweep comparison plots on random Gaussian data.
 Produces 6 PDF figures: {D, K}-sweep x {MSE, Gain Error, Cosine Similarity}.
@@ -155,7 +155,7 @@ METRIC_SPECS = [
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Figure 3: Synthetic Gaussian Experiments")
+    ap = argparse.ArgumentParser(description="Figure 4: Synthetic Gaussian Experiments")
     ap.add_argument("--out_dir", type=str, required=True,
                     help="Directory to save output PDFs")
     ap.add_argument("--N", type=int, default=10000,

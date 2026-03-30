@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Figure 4: Llama-3-8B KV-Cache Reconstruction (KM vs GSKM).
+Figure 5: Llama-3-8B KV-Cache Reconstruction (KM vs GSKM).
 
 Reads JSON reports produced by ``run_clustering.py`` and generates comparison
 plots sweeping across head dimensions D for each (Key/Value) x (Original/Residual)
@@ -235,7 +235,7 @@ def plot_metric_sweep(df: pd.DataFrame, out_path: str,
 
 def main():
     ap = argparse.ArgumentParser(
-        description="Figure 4: KV-Cache Reconstruction Comparison")
+        description="Figure 5: KV-Cache Reconstruction Comparison")
     ap.add_argument("--input_dir", type=str, required=True,
                     help="Directory containing clustering_comparison_report_*.json")
     ap.add_argument("--output_dir", type=str, required=True,

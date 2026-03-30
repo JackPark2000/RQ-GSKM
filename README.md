@@ -1,6 +1,6 @@
 # GSRQ: Gain-Shape Residual Quantization for Sub-1-bit KV Cache
 
-This repository provides the scripts to reproduce **Figure 3** (synthetic Gaussian experiments) and **Figure 4** (Llama-3-8B KV-cache reconstruction) from the paper:
+This repository provides the scripts to reproduce **Figure 4** (synthetic Gaussian experiments) and **Figure 5** (Llama-3-8B KV-cache reconstruction) from the paper:
 
 > **GSRQ: Gain-Shape Residual Quantization for Sub-1-bit KV Cache**
 
@@ -17,8 +17,9 @@ Both figures compare **Standard K-Means (KM)** against **Gain-Shape K-Means (GSK
 ├── dump_kvcache.sh        # Shell script to dump all (dim, key/value) configurations
 ├── run_clustering.py      # Run KM vs GSKM on dumped KV-cache data → JSON reports
 ├── run_clustering.sh      # Shell script to batch-run clustering experiments
-├── plot_synthetic.py      # Figure 3: Synthetic Gaussian D-sweep & K-sweep
-├── plot_kvcache.py        # Figure 4: Llama-3-8B KV-cache reconstruction
+├── plot_synthetic.py      # Figure 4: Synthetic Gaussian D-sweep & K-sweep
+├── plot_kvcache.py        # Figure 5: Llama-3-8B KV-cache reconstruction
+├── clustering_results/    # Pre-computed clustering results (JSON) for Figure 5
 ├── requirements.txt       # Python dependencies
 └── README.md
 ```
@@ -27,28 +28,21 @@ Both figures compare **Standard K-Means (KM)** against **Gain-Shape K-Means (GSK
 
 ## Prerequisites
 
-The code requires **PyTorch** with CUDA support, **RAPIDS cuML** for GPU-accelerated clustering, and **HuggingFace Transformers** for model loading.
-
 ```bash
 pip install -r requirements.txt
 ```
 
-**Core Dependencies:**
-- Python 3.8+
-- PyTorch (with CUDA)
-- CuPy, RAPIDS cuML
-- HuggingFace Transformers, Datasets, Accelerate
-- Matplotlib, NumPy, Pandas
+**Plotting only** (Figure 5 from pre-computed results): Matplotlib, NumPy, Pandas.
 
-> **Note:** Llama-3-8B requires access approval on [HuggingFace](https://huggingface.co/meta-llama/Meta-Llama-3-8B). Run `huggingface-cli login` before dumping KV-cache data.
+**Full reproduction** (Figure 4 synthetic + re-running clustering): PyTorch with CUDA, RAPIDS cuML, CuPy, HuggingFace Transformers.
 
 <br>
 
 ## Reproducing Figures
 
-### Figure 3: Synthetic Gaussian Sweeps
+### Figure 4: Synthetic Gaussian Sweeps
 
-Visualize the centroid shrinkage phenomenon on synthetic data. The script generates random Gaussian vectors internally, runs KM and GSKM, and produces 6 PDF figures (D-sweep and K-sweep for MSE, Gain Error, and Cosine Similarity).
+Visualize the centroid shrinkage phenomenon on synthetic data. The script generates random Gaussian vectors internally, runs KM and GSKM, and produces 6 PDF figures (D-sweep and K-sweep for MSE, Gain Error, and Cosine Similarity). Requires a CUDA GPU.
 
 ```bash
 python plot_synthetic.py \
@@ -57,12 +51,34 @@ python plot_synthetic.py \
     --Ks 64 128 256 512 1024 2048 4096 8192 16384
 ```
 
-**Output:** `figures/synthetic/dsweep_*.pdf` and `figures/synthetic/ksweep_*.pdf`
+**Output:** `figures/synthetic/dsweep_*.pdf` and `figures/synthetic/ksweep_*.pdf` (Figure 4a-f)
 
 
-### Figure 4: Llama-3-8B KV-Cache Reconstruction
+### Figure 5: Llama-3-8B KV-Cache Reconstruction
 
-Evaluate reconstruction quality on real KV-cache activations extracted from Llama-3-8B on Wikitext-2.
+Pre-computed clustering results are included in `clustering_results/`, so you can generate the plots immediately after cloning:
+
+```bash
+python plot_kvcache.py \
+    --input_dir clustering_results \
+    --output_dir figures/kvcache \
+    --Ks 256 1024 \
+    --include_residual 1
+```
+
+| Argument | Description |
+|---|---|
+| `--input_dir` | Directory containing JSON reports |
+| `--output_dir` | Directory to save PDF/PNG figures |
+| `--Ks` | Codebook sizes to overlay (default: 256, 1024) |
+| `--include_residual` | Set to `1` to plot original and 1st residual separately |
+
+**Output:** Plots for Key/Value Original and Key/Value 1st Residual (Figure 5a-l).
+
+<details>
+<summary><b>Re-running from scratch (optional)</b></summary>
+
+If you want to reproduce the clustering results yourself, follow these steps:
 
 **Step 1.** Dump KV-cache activations for all required dimensions:
 
@@ -85,24 +101,11 @@ bash run_clustering.sh
 
 This executes `run_clustering.py` for all $D \in \{8, 32, 128, 512\}$, $K \in \{256, 1024\}$, and both key/value caches. Results (including the 1st residual stage) are saved as JSON files in `clustering_results/`.
 
-**Step 3.** Generate the comparison plots:
+**Step 3.** Generate the plots using the command above.
 
-```bash
-python plot_kvcache.py \
-    --input_dir clustering_results \
-    --output_dir figures/kvcache \
-    --Ks 256 1024 \
-    --include_residual 1
-```
+> **Note:** Llama-3-8B requires access approval on [HuggingFace](https://huggingface.co/meta-llama/Meta-Llama-3-8B). Run `huggingface-cli login` before dumping KV-cache data.
 
-| Argument | Description |
-|---|---|
-| `--input_dir` | Directory containing JSON reports |
-| `--output_dir` | Directory to save PDF/PNG figures |
-| `--Ks` | Codebook sizes to overlay (default: 256, 1024) |
-| `--include_residual` | Set to `1` to plot original and 1st residual separately |
-
-**Output:** Plots for Key/Value Original and Key/Value 1st Residual (Figure 4a-l).
+</details>
 
 <br>
 
