@@ -1,0 +1,22 @@
+{
+  "dim": 512,
+  "key_or_value": "key",
+  "num_clusters": 256,
+  "trim_ratio": 0.01,
+  "averages": {
+    "K-Means": {
+      "avg_mse": 0.5656667746952735,
+      "avg_tmse_1pct": 0.5607916828012094,
+      "avg_gain_err": 10.631971646100283,
+      "avg_cos_sim_err": 0.6053768810816109,
+      "avg_sil": NaN
+    },
+    "ABC": {
+      "avg_mse": 0.5580766993807629,
+      "avg_tmse_1pct": 0.5529259344912134,
+      "avg_gain_err": 10.328396618366241,
+      "avg_cos_sim_err": 0.5800508661195636,
+      "avg_sil": NaN
+    }
+  }
+}

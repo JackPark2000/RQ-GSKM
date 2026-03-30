@@ -4,7 +4,6 @@ __pycache__/
 .eggs/
 
 # Output directories
-clustering_results/
 dumped_data_dim_*/
 figures/
 output_figures*/
