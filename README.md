@@ -6,10 +6,6 @@ This repository provides the scripts to reproduce **Figure 4** (synthetic Gaussi
 
 Both figures compare **Standard K-Means (KM)** against **Gain-Shape K-Means (GSKM)**, demonstrating the centroid shrinkage phenomenon in high-dimensional clustering and the effectiveness of gain-shape reparameterization.
 
-<p align="center">
-  <img src="assets/figures.png" alt="Figure 4 & 5: KM vs GSKM comparison" width="800"/>
-</p>
-
 <br>
 
 ## Repository Structure
