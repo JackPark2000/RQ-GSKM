@@ -28,13 +28,25 @@ Both figures compare **Standard K-Means (KM)** against **Gain-Shape K-Means (GSK
 
 ## Prerequisites
 
+Create a conda environment with RAPIDS cuML and PyTorch:
+
 ```bash
-pip install -r requirements.txt
+conda create -n gsrq python=3.11 -y
+conda activate gsrq
+
+# RAPIDS cuML (from rapidsai channel)
+conda install -c rapidsai -c conda-forge -c nvidia cuml cupy rapids-dask-dependency -y
+
+# PyTorch with CUDA
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# Remaining dependencies
+pip install matplotlib numpy pandas transformers datasets accelerate
 ```
 
-**Plotting only** (Figure 5 from pre-computed results): Matplotlib, NumPy, Pandas.
+**Plotting only** (Figure 5 from pre-computed results): `matplotlib`, `numpy`, `pandas` are sufficient.
 
-**Full reproduction** (Figure 4 synthetic + re-running clustering): PyTorch with CUDA, RAPIDS cuML, CuPy, HuggingFace Transformers.
+**Full reproduction** (Figure 4 synthetic + re-running clustering): the full environment above is required.
 
 <br>
 
