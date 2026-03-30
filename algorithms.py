@@ -155,8 +155,6 @@ def run_comparison(data_cpu, weights_cpu=None, num_clusters=1024,
         weight_cp = torch_to_cupy(weights_cpu.to(device).float())
 
     results = {}
-
-    # ---- Standard K-Means (KM) ----
     km = cuKMeans(n_clusters=num_clusters, max_iter=20, random_state=42)
     km.fit(torch_to_cupy(data_gpu))
     labels_km = torch.from_numpy(km.labels_.get()).to(device).long()
@@ -165,29 +163,23 @@ def run_comparison(data_cpu, weights_cpu=None, num_clusters=1024,
     results["K-Means"] = evaluate_metrics(
         data_cpu, recon_km, labels_km, trim_ratio=trim_ratio,
     )
-
-    # ---- Gain-Shape K-Means (GSKM) ----
-    # Step 1: Spherical K-Means for initial shape directions
     km_sph = cuKMeans(n_clusters=num_clusters, max_iter=20, random_state=42)
     km_sph.fit(torch_to_cupy(data_norm_gpu), sample_weight=weight_cp)
     labels_sph = torch.from_numpy(km_sph.labels_.get()).to(device).long()
     centroids_sph = torch.from_numpy(km_sph.cluster_centers_.get()).to(device).float()
     shape = F.normalize(centroids_sph, p=2, dim=-1)
-
-    # Step 2: Initialize gain as per-cluster average norm
     raw_gain = _compute_avg_gain_norm(
         data_gpu, labels_sph, num_clusters,
     ).clamp(min=1e-4).cpu()
-
-    # Step 3: Alternating optimization
     labels_abc = None
+
+    # GSKM Algorithm
     for _ in range(abc_iters):
         gain_q = raw_gain.to(device).to(torch.bfloat16).float()
         projections = torch.matmul(data_gpu, shape.t())
         scores = 2 * projections * gain_q.unsqueeze(0) - gain_q.unsqueeze(0).pow(2)
         labels_abc = torch.argmax(scores, dim=1)
 
-        # Update shape directions
         new_shape = torch.zeros_like(shape)
         new_shape.scatter_add_(
             0,
@@ -196,7 +188,6 @@ def run_comparison(data_cpu, weights_cpu=None, num_clusters=1024,
         )
         shape = F.normalize(new_shape, p=2, dim=-1)
 
-        # Update gains
         proj_assigned = projections.gather(1, labels_abc.unsqueeze(1)).squeeze(1)
         new_gain = torch.zeros_like(gain_q)
         cnts = torch.zeros_like(gain_q)
