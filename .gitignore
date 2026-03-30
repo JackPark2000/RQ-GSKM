@@ -9,3 +9,4 @@ figures/
 output_figures*/
 *.pdf
 *.png
+!assets/*.png
